@@ -1,0 +1,104 @@
+(load "simpleParser.scm")
+
+; left operand
+(define lop cadr)
+
+; right operand
+(define rop caddr)
+
+; the name list (first list) in M_state
+(define names car)
+
+; the value list (second list) in M_state
+(define values cdr)
+
+; interpret the parsing results
+; input: filename
+(define interpret
+  (lambda (filename)
+    (lookUp 'return (M_statement_list (parser filename) (newState)))))
+
+; create a new state: true, false, or undefined
+(define newState
+  (lambda ()
+    '((true false return) (#t #f 'undefined))))
+
+; look up if the variable is in the state binding pairs
+; inputs: name of the variable, current state
+(define lookUp
+  (lambda (name state)
+    (cond
+     ((null? (name)) state)
+     ((null? (state)) 'undeclared)
+     ((eq? (car (names state)) name) (car (values state)))
+     (else (lookUp name (cons (cdr (names state)) (cons (cdr (values state)) '()) ) )))))
+
+; convert the parsing results to a statement list
+; inputs: statement list, current state
+(define M_statement_list
+  (lambda (stmts state)
+    (if (null? stmts)
+        state
+        (M_statement_list (cdr stmts) (M_state (car stmts) state) ))))
+
+; operate a statement: variable declaration, assignment, return, if statement, or while statement
+; store the binding pairs (name, value) in M_state, first list is name list, second list is value list
+; inputs: statement list, current state
+(define M_state
+  (lambda (stmt state)
+    (cond
+      ((eq? 'var (car stmt)) (M_declare stmt state))
+      ((eq? '= (car stmt)) (M_assign stmt state))
+      ((eq? 'return (car stmt)) (M_return stmt state))
+      ((eq? 'if (car stmt)) (M_if stmt state))
+      ((eq? 'while (car stmt)) (M_while stmt state))
+      (else state))))
+
+; operate a variable declaration
+; inputs: statement, current state
+(define M_declare
+  (lambda (stmt state)
+    (
+    ; TBD
+    ))
+
+;define M_assign
+
+;define M_return
+
+;define M_if
+
+;define M_while
+
+;define M_value
+
+
+; Update the state for current variable
+; Previous condition: the name has been declared
+(define M_update
+  (lambda (name value state)
+    (cond
+      ((null? name) state)
+      ((null? state) (M_add name value state))
+      ((eq? name (car (names state))) (cons (names state) (cons value (cdr (values state)) '()) '()))
+      (else (cons
+            (cons
+             (car (names state))
+             (names (updateState name value
+                                 (cons (cdr (names state)) (cdr (values state)) '())))
+             '())
+            (cons
+             (car (values state))
+             (values (updateState name value
+                                 (cons (cdr (names state)) (cdr (values state)) '())))
+             '())
+            '())))))
+   
+; Add (name value) to the current state list
+; Previous condition: name has been declared/name not null
+(define M_add
+    (lambda (name value state)
+      (cons
+       (cons (names state) name '())
+       (cons (values state) value '())
+       '())))
