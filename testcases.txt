@@ -1,1 +1,23 @@
+(interpret "test.rkt")
+
+(M_assign '(= x 3) '((x) (uninitialized)))
+
+(M_if '(if (> x y) (return x)) '((x y) (2 1)))
+
 (lookUp 'return (M_return '(return (+ x 1)) '((x) (1))))
+
+// test y = x
+(M_value '(caddr (= y x)) '((y) (uninitialized)))
+(M_update 'y (M_value '(caddr (= y x)) '((y) (uninitialized))) '((y) (uninitialized)))
+
+Needs to debug
+Test 10: This code should return -39.
+return 6 * -(4 * 2) + 9;
+
+Test 12: This code should give an error (using before declaring).
+var y;
+y = x;
+return y;
+
+
+

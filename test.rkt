@@ -1,1 +1,3 @@
-return 15;
+var y;
+y = x;
+return y;
