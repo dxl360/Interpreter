@@ -1,0 +1,41 @@
+> (interpret "test1.txt")
+150
+> (interpret "test2.txt")
+-4
+> (interpret "test3.txt")
+10
+> (interpret "test4.txt")
+16
+> (interpret "test5.txt")
+220
+> (interpret "test6.txt")
+5
+> (interpret "test7.txt")
+6
+> (interpret "test8.txt")
+10
+> (interpret "test9.txt")
+5
+> (interpret "test10.txt")
+-39
+> (interpret "test11.txt")
+. . undeclaredVar: a variable must be declared before assignment
+> (interpret "test12.txt")
+. . x: was undeclared
+> (interpret "test13.txt")
+. . uninitializedVar: a variable must be initialized before its first use
+> (interpret "test14.txt")
+. . declaredTwiceVar: a variable can't be declared twice
+> (interpret "test15.txt")
+true
+> (interpret "test16.txt")
+100
+> (interpret "test17.txt")
+false
+> (interpret "test18.txt")
+true
+> (interpret "test19.txt")
+128
+> (interpret "test20.txt")
+12
+> 

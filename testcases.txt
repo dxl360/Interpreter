@@ -6,6 +6,21 @@
 
 (lookUp 'return (M_return '(return (+ x 1)) '((x) (1))))
 
+
+(M_statement_list '((var x 1) (var y 2) (if (== x 1) (return x)) (if (== y 2) (return y))) '(() ()))
+//
+var x = 1;
+var y = 2;
+if (x == 1)
+  return x;
+if (y == 2)
+  return y;
+
+(M_statement_list '((var x (/ (- (* 5 7) 3) 2)) (return x)) '(() ()))
+//var x = (5 * 7 - 3) / 2;
+return x;
+
+
 // test y = x
 (M_value '(caddr (= y x)) '((y) (uninitialized)))
 (M_update 'y (M_value '(caddr (= y x)) '((y) (uninitialized))) '((y) (uninitialized)))
