@@ -48,7 +48,7 @@
   (lambda (name state)
     (cond
       ((eq? (car (namelist state)) name) (not (eq? 'uninitialized (car (valuelist state)))))
-      (else (initialized? name (cons (cdr (namelist state)) (cons (cdr (valuelist state)) '()) ) )))))
+      (else (initialized? (cons (cdr (namelist state)) (cons (cdr (valuelist state)) '()) ) )))))
 
 ; convert the parsing results to a statement list
 ; inputs: statement list, current state
@@ -76,7 +76,7 @@
 (define M_declare
   (lambda (stmt state)
     (cond
-      ((not (eq? 'undeclared (lookUp (operandL stmt) state))) (error 'declaredTwiceVar "a variable can't be declared twice"))
+      ((not (declared? (operandL stmt) (namelist state))) (error 'declaredTwiceVar "a variable can't be declared twice"))
       ((null? (cddr stmt)) (M_add (operandL stmt) 'uninitialized state))
       (else (M_add (operandL stmt) (M_value (operandR stmt) state) state))))) ; add name null?????????????????????????
 
@@ -84,15 +84,15 @@
 (define M_assign
   (lambda (stmt state)
     (cond
-      ((eq? 'undeclared (lookUp (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before assignment"))
-      (else (M_add (operandL stmt) (M_value (operandR stmt) state) state)))))
+      ((not (declared? (operandL stmt) (namelist state))) (error 'undeclaredVar "a variable must be declared before assignment"))
+      (else (M_update (operandL stmt) (M_value (operandR stmt) state) state)))))
       
 ;define M_return
 (define M_return
   (lambda (stmt state)
     (cond
-      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before returning it"))
-      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before returning it"))
+      ((not (declared? (operandL stmt) (namelist state))) (error 'undeclaredVar "a variable must be declared before returning it"))
+      ((not (initialized? (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before returning it"))
       ((eq? #t (M_value (operandL stmt) state)) (M_add 'return 'true state))
       ((eq? #f (M_value (operandL stmt) state)) (M_add 'return 'false state))
       (else (M_add 'return (M_value (operandL stmt) state) state)))))
@@ -101,8 +101,8 @@
 (define M_if
   (lambda (stmt state)
     (cond
-      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before its first use"))
-      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
+      ((not (declared? (operandL stmt) (namelist state))) (error 'undeclaredVar "a variable must be declared before its first use"))
+      ((not (initialized? (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
       ((M_value (operandL stmt) state) (M_state (operandR stmt) state)) ; if contidion is true, execute the then branch
       ((null? (cdddr stmt)) state) ; no else branch
       (else (M_state (cadddr stmt) state))))) ; execute the else branch
@@ -111,8 +111,8 @@
 (define M_while
   (lambda (stmt state)
     (cond
-      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before its first use"))
-      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
+      ((not (declared? (operandL stmt) (namelist state))) (error 'undeclaredVar "a variable must be declared before its first use"))
+      ((not (initialized? (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
       ((M_value (operandL stmt) state) (M_while stmt (M_state (operandR stmt) state))) ; if condition is true, execute the while loop
       (else state))))
       
