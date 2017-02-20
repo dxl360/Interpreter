@@ -1,10 +1,10 @@
-;(load "simpleParser.scm")
+(load "simpleParser.scm")
 
 ; left operand
-(define lop cadr)
+(define operandL cadr)
 
 ; right operand
-(define rop caddr)
+(define operandR caddr)
 
 ; the name list (first list) in M_state
 (define namelist car)
@@ -16,7 +16,7 @@
 ; input: filename
 (define interpret
   (lambda (filename)
-    (lookUp 'return (M_statement_list (parser filename) (newState)))))
+    (lookUp 'return (M_statement_list (parser filename) (newState)) )))
 
 ; create a new state: true, false, or undefined
 (define newState
@@ -28,10 +28,27 @@
 (define lookUp
   (lambda (name state)
     (cond
-     ((null? (name)) state)
-     ((null? (state)) 'undeclared)
+     ((null? (car state)) 'undeclared)
      ((eq? (car (namelist state)) name) (car (valuelist state)))
      (else (lookUp name (cons (cdr (namelist state)) (cons (cdr (valuelist state)) '()) ) )))))
+
+; check if an variable is defined or not
+; takes a name and a namelist as input and returns whether a name is inside it
+(define declared?
+  (lambda (name names)
+    (cond
+      ((null? names) #f)
+      ((eq? (car names) name) #t)
+      (else (declared? name (cdr names))))))
+
+; check is an variable is initialized or not
+; previous condition, the variable is declared
+; takes a state and a name as input, check if the state of it is uninitialized
+(define initialized?
+  (lambda (name state)
+    (cond
+      ((eq? (car (namelist state)) name) (not (eq? 'uninitialized (car (valuelist state)))))
+      (else (initialized? name (cons (cdr (namelist state)) (cons (cdr (valuelist state)) '()) ) )))))
 
 ; convert the parsing results to a statement list
 ; inputs: statement list, current state
@@ -56,19 +73,65 @@
 
 ; operate a variable declaration
 ; inputs: statement, current state
-;(define M_declare
-; (lambda (stmt state)))
-; TBD
+(define M_declare
+  (lambda (stmt state)
+    (cond
+      ((not (eq? 'undeclared (lookUp (operandL stmt) state))) (error 'declaredTwiceVar "a variable can't be declared twice"))
+      ((null? (cddr stmt)) (M_add (operandL stmt) 'uninitialized state))
+      (else (M_add (operandL stmt) (M_value (operandR stmt) state) state))))) ; add name null?????????????????????????
 
 ;define M_assign
-
+(define M_assign
+  (lambda (stmt state)
+    (cond
+      ((eq? 'undeclared (lookUp (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before assignment"))
+      (else (M_add (operandL stmt) (M_value (operandR stmt) state) state)))))
+      
 ;define M_return
+(define M_return
+  (lambda (stmt state)
+    (cond
+      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before returning it"))
+      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before returning it"))
+      ((eq? #t (M_value (operandL stmt) state)) (M_add 'return 'true state))
+      ((eq? #f (M_value (operandL stmt) state)) (M_add 'return 'false state))
+      (else (M_add 'return (M_value (operandL stmt) state) state)))))
 
 ;define M_if
-
+(define M_if
+  (lambda (stmt state)
+    (cond
+      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before its first use"))
+      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
+      ((M_value (operandL stmt) state) (M_state (operandR stmt) state)) ; if contidion is true, execute the then branch
+      ((null? (cdddr stmt)) state) ; no else branch
+      (else (M_state (cadddr stmt) state))))) ; execute the else branch
+      
 ;define M_while
-
+(define M_while
+  (lambda (stmt state)
+    (cond
+      ((eq? 'undeclared (M_value (operandL stmt) state)) (error 'undeclaredVar "a variable must be declared before its first use"))
+      ((eq? 'uninitialized (M_value (operandL stmt) state)) (error 'uninitializedVar "a variable must be initialized before its first use"))
+      ((M_value (operandL stmt) state) (M_while stmt (M_state (operandR stmt) state))) ; if condition is true, execute the while loop
+      (else state))))
+      
 ;define M_value
+(define operator car)
+(define operandL cadr)
+(define operandR caddr)
+
+(define M_value
+  (lambda (expr state)
+    (cond
+      ((number? expr) expr)    ; the base case is just returns the value if it's a number
+      ((eq? (car expr) '+) (+ (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      ((eq? (car expr) '-) (- (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      ((eq? (car expr) '*) (* (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      ((eq? (car expr) 'x) (* (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      ((eq? (car expr) '/) (quotient (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      ((eq? (car expr) '%) (remainder (M_value (operandL expr) state) (M_value (operandR expr) state)))
+      (else (error "unknown operator:" (car expr))) )))
 
 
 ; Update the state for current variable
