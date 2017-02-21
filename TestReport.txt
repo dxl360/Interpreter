@@ -38,4 +38,5 @@ true
 128
 > (interpret "test20.txt")
 12
-> 
+> (interpret "test21.txt")
+30
