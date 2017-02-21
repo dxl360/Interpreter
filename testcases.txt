@@ -36,3 +36,18 @@ return y;
 
 
 
+
+>  (M_value '(= x (= y 10)) '((x y) (uninitialized uninitialized)))
+. . uninitializedVar: a variable must be initialized before its first use
+> (interpret "test21.txt")
+. . uninitializedVar: a variable must be initialized before its first use
+> (parser "test21.txt")
+((var x) (var y) (var z (= x (= y 10))) (return x))
+> (M_assign '(var z (= x (= y 10))) '((x y z) (uninitialized uninitialized uninitialized)))
+((x y z) (10 10 10))
+> (M_declare '(var z (= x (= y 10))) '((x y z) (uninitialized uninitialized uninitialized)))
+. . declaredTwiceVar: a variable can't be declared twice
+> (M_assign '(var z (= x (= y 10))) '((x y) (uninitialized uninitialized)))
+. . undeclaredVar: a variable must be declared before assignment
+
+
