@@ -1,0 +1,56 @@
+Team Members:
+Duan Li, dxl360
+Xiaoying Ji, xxj52
+
+
+> (interpret "test1.txt")
+20
+> (interpret "test2.txt")
+164
+> (interpret "test3.txt")
+32
+> (interpret "test4.txt")
+2
+> (interpret "test5.txt")
+. . usage of undeclared variable
+> (interpret "test6.txt")
+25
+> (interpret "test7.txt")
+21
+> (interpret "test8.txt")
+6
+> (interpret "test9.txt")
+-1
+> (interpret "test10.txt")
+789
+> (interpret "test11.txt")
+. . usage of undeclared variable x
+> (interpret "test12.txt")
+. . usage of undeclared variable z
+> (interpret "test13.txt")
+. . invalid break
+> (interpret "test14.txt")
+12
+> (interpret "test15.txt")
+125
+> (interpret "test16.txt")
+215
+
+Test 17 should return 2000400.
+> (interpret "test17.txt")
+. . cadr: contract violation
+  expected: (cons/c any/c pair?)
+  given: ()
+> (interpret "test18.txt")
+101
+
+Test 19 should give an error.
+> (interpret "test19.txt")
+. . cadr: contract violation
+  expected: (cons/c any/c pair?)
+  given: ()
+
+Test 20: This code should return 21.
+> (interpret "test20.txt")
+. . unknown expression
+> 
